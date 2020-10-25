@@ -1,0 +1,694 @@
+DROP VIEW HOTEL_REVIEW;
+DROP VIEW ASK_LIST;
+DROP VIEW BEAUTY_REVIEW;
+DROP VIEW MEDICAL_REVIEW;
+DROP VIEW GOODS_REVIEW;
+DROP VIEW REPORT_LIST;
+DROP VIEW MEMBERSLIST;
+DROP VIEW SUSPENDLIST;
+DROP VIEW HOTEL_RESERVE_LIST;
+DROP VIEW BEAUTY_RESERVE_LIST;
+DROP VIEW MEDICAL_RESERVE_LIST;
+DROP VIEW GOODS_BUY_LIST;
+DROP VIEW GOODS_LIST;
+DROP TABLE EVENT_COMMENT_LIKE;
+DROP TABLE EVENT_COMMENT;
+DROP TABLE EVENT;
+DROP TABLE REVIEW_REPORT;
+DROP TABLE REVIEW_LIKE;
+DROP TABLE REVIEW;
+DROP TABLE EDUCATION_COMMENT_LIKE;
+DROP TABLE EDUCATION_COMMENT;
+DROP TABLE EDUCATION_LIKE;
+DROP TABLE EDUCATION;
+DROP TABLE GOODS_BASKET;
+DROP TABLE GOODS_ASK;
+DROP TABLE GOODS_BUY;
+DROP TABLE GOODS_LIKE;
+DROP TABLE GOODS;
+DROP TABLE BEAUTY_RESERVATION;
+DROP TABLE BEAUTY_DESIGNER;
+DROP TABLE MEDICAL_RESERVATION;
+DROP TABLE MEDICAL_DOCTOR;
+DROP TABLE HOTEL_RESERVATION;
+DROP TABLE HOTEL;
+DROP TABLE MEMBER_COUPON;
+DROP TABLE COUPON;
+DROP SEQUENCE EDU_SEQ;
+DROP SEQUENCE GOODSNUM_SEQ;
+DROP SEQUENCE EVENT_SEQ;
+DROP SEQUENCE EVENT_COMMENT_SEQ;
+DROP SEQUENCE EDUCATION_COMMENT_SEQ;
+DROP SEQUENCE REVIEW_SEQ;
+DROP SEQUENCE GOODS_ASK_SEQ;
+DROP SEQUENCE HOTEL_RESERVE_SEQ;
+DROP SEQUENCE BEAUTY_RESERVE_SEQ;
+DROP SEQUENCE MEDICAL_RESERVE_SEQ;
+DROP SEQUENCE GOODS_BUY_SEQ;
+
+
+--/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+-- 회원 정보 테이블
+CREATE TABLE MEMBERS(
+    USERID NVARCHAR2(15) PRIMARY KEY,
+    USERPW NVARCHAR2(100) NOT NULL,
+    USERNAME NVARCHAR2(5) NOT NULL,
+    USERIMAGE NVARCHAR2(100),
+    USERBIRTH DATE,
+    USERADDRESS NVARCHAR2(50),
+    USERGENDER NVARCHAR2(2) NOT NULL,
+    USEREMAIL NVARCHAR2(50) NOT NULL,
+    USERPHONE NVARCHAR2(11) NOT NULL UNIQUE,
+    USERCONFIRM NVARCHAR2(2),
+    USERLOCK DATE,
+    USERLOCKCOUNT NUMBER default 0,
+    USERPOINT NUMBER default 0,
+    NAVERID NVARCHAR2(20) UNIQUE,
+    KAKAOID NVARCHAR2(20) UNIQUE,
+    FACEBOOKID NVARCHAR2(20) UNIQUE
+);
+CREATE VIEW MEMBERLIST AS SELECT B.*, ROW_NUMBER() OVER(ORDER BY USERID) AS RN FROM MEMBERS B;
+CREATE VIEW SUSPENDLIST AS SELECT B.*, ROW_NUMBER() OVER(ORDER BY USERID) AS RN FROM MEMBERS B WHERE USERLOCK>SYSDATE;
+
+
+select*from members;
+commit;
+delete members where useremail='eundol0519@naver.com';
+
+
+-- 쿠폰 정보 테이블
+CREATE TABLE COUPON(
+    COUPONNAME NVARCHAR2(50) NOT NULL, 
+    COUPONCODE NVARCHAR2(12) PRIMARY KEY,
+    COUPONDATE DATE NOT NULL,
+    COUPONCONTENTS NVARCHAR2(50) NOT NULL,
+    COUPONSALE NUMBER NOT NULL
+);
+INSERT INTO COUPON VALUES('50퍼할인쿠폰','ddaa',SYSDATE+100,'50퍼센트 할인쿠폰',50);
+-- 회원이 가진 쿠폰 테이블
+CREATE TABLE MEMBER_COUPON(
+    USERID NVARCHAR2(15),
+    COUPONCODE NVARCHAR2(12),
+
+    CONSTRAINT MB_CP_PK PRIMARY KEY(USERID, COUPONCODE),
+    CONSTRAINT MC_UI_FK FOREIGN KEY (USERID) REFERENCES MEMBERS(USERID) ON DELETE CASCADE,
+    CONSTRAINT MC_CC_FK FOREIGN KEY (COUPONCODE) REFERENCES COUPON(COUPONCODE) ON DELETE CASCADE
+);
+
+
+
+
+--/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+-- 호텔 정보 테이블
+CREATE TABLE HOTEL(
+    HOTELSIZE NVARCHAR2(2) NOT NULL,
+    HOTELCODE NVARCHAR2(4) PRIMARY KEY,
+    HOTELROOMNAME NVARCHAR2(10) NOT NULL,
+    HOTELPRICE NUMBER NOT NULL,
+    HOTELPOINT NUMBER,
+    HOTELMAXANIMAL NUMBER NOT NULL,
+    HOTELCONTENTS NVARCHAR2(1000),
+    HOTELROOMIMAGE1 NVARCHAR2(100),
+    HOTELROOMIMAGE2 NVARCHAR2(100),
+    HOTELROOMIMAGE3 NVARCHAR2(100),
+    HOTELROOMIMAGE4 NVARCHAR2(100),
+    HOTELROOMIMAGE5 NVARCHAR2(100),
+    KIND NVARCHAR2(3) NOT NULL
+);
+INSERT INTO HOTEL VALUES('소', 'HT01', '작은방', 20000, 20000*0.05, 1, '아이를 너무나 좋아하는 사람들이 만든, 아이가 너무나 좋아하는 환경</br>레어펫은 단순히 아이들을 케어하는 곳이 아닌</br>"아이의 행복과 긍정성을 극대화한 반려동물 복합 힐링플레이스"입니다.<br/><br/>"야외 공간과 프라이빗 공간의 환상적인 콜라보"<br/>"다양한 시설과 다이나믹한 어질리티"<br/>"다채로운 프로그램과 수준 높은 데이케어"<br/>"아이좋아 우다다 웰빙라이프"<br/><br/>"반려동물 사랑에서 시작된 작지만 큰 배려"<br/>신선한 순환기 시스템과 쾌적한 공기청정 제습은 기본!<br/>여름 시원 겨울 따뜻, 전객실 향온 바닥난방과 냉방순환 시스템<br/>철저한 위생소독 관리와 1:1 맞춤 데이케어<br/><br/>레어펫 호텔링은 내 집 같은 포근함과 아늑함으로 아이들의 활력과 심리적인 안정감을 향상 시킵니다.','호텔작은방1.jpg','호텔작은방2.jpg','호텔작은방3.jpg','호텔작은방4.jpg','호텔작은방5.jpg','호텔');
+INSERT INTO HOTEL VALUES('중', 'HT02', '중간방', 40000, 40000*0.05, 3, '아이를 너무나 좋아하는 사람들이 만든, 아이가 너무나 좋아하는 환경</br>레어펫은 단순히 아이들을 케어하는 곳이 아닌</br>"아이의 행복과 긍정성을 극대화한 반려동물 복합 힐링플레이스"입니다.<br/><br/>"야외 공간과 프라이빗 공간의 환상적인 콜라보"<br/>"다양한 시설과 다이나믹한 어질리티"<br/>"다채로운 프로그램과 수준 높은 데이케어"<br/>"아이좋아 우다다 웰빙라이프"<br/><br/>"반려동물 사랑에서 시작된 작지만 큰 배려"<br/>신선한 순환기 시스템과 쾌적한 공기청정 제습은 기본!<br/>여름 시원 겨울 따뜻, 전객실 향온 바닥난방과 냉방순환 시스템<br/>철저한 위생소독 관리와 1:1 맞춤 데이케어<br/><br/>레어펫 호텔링은 내 집 같은 포근함과 아늑함으로 아이들의 활력과 심리적인 안정감을 향상 시킵니다.','호텔중간방1.jpg','호텔중간방2.jpg','호텔중간방3.jpg','호텔중간방4.jpg','호텔중간방5.jpg','호텔');
+INSERT INTO HOTEL VALUES('대', 'HT03', '큰방', 60000, 60000*0.05, 5, '아이를 너무나 좋아하는 사람들이 만든, 아이가 너무나 좋아하는 환경</br>레어펫은 단순히 아이들을 케어하는 곳이 아닌</br>"아이의 행복과 긍정성을 극대화한 반려동물 복합 힐링플레이스"입니다.<br/><br/>"야외 공간과 프라이빗 공간의 환상적인 콜라보"<br/>"다양한 시설과 다이나믹한 어질리티"<br/>"다채로운 프로그램과 수준 높은 데이케어"<br/>"아이좋아 우다다 웰빙라이프"<br/><br/>"반려동물 사랑에서 시작된 작지만 큰 배려"<br/>신선한 순환기 시스템과 쾌적한 공기청정 제습은 기본!<br/>여름 시원 겨울 따뜻, 전객실 향온 바닥난방과 냉방순환 시스템<br/>철저한 위생소독 관리와 1:1 맞춤 데이케어<br/><br/>레어펫 호텔링은 내 집 같은 포근함과 아늑함으로 아이들의 활력과 심리적인 안정감을 향상 시킵니다.','호텔큰방1.jpg','호텔큰방2.jpg','호텔큰방3.jpg','호텔큰방4.jpg','호텔큰방5.jpg','호텔');
+
+select * from hotel;
+select * from members;
+
+-- 호텔 예약 정보 테이블
+CREATE TABLE HOTEL_RESERVATION(
+    HOTELRESERVENUM NUMBER,
+    HOTELRESERVECODE NVARCHAR2(4),
+    HOTELUSERNAME NVARCHAR2(5) NOT NULL,
+    HOTELUSERPHONE NVARCHAR2(11) NOT NULL,
+    HOTELCHECKIN DATE,
+    HOTELCHECKOUT DATE,
+    HOTELANIMALKIND NVARCHAR2(3) NOT NULL,
+    HOTELSPECIALNOTE NVARCHAR2(1000),
+    HOTELPAYMENT NVARCHAR2(6) NOT NULL,
+    HOTELUSERID NVARCHAR2(15) NOT NULL,
+    HOTELRESERVEPRICE NUMBER,
+    HOTELRESERVEPOINT NUMBER,
+    HOTELREVIEW NUMBER,
+
+    CONSTRAINT HT_CD_FK FOREIGN KEY (HOTELRESERVECODE) REFERENCES HOTEL(HOTELCODE) ON DELETE CASCADE,
+    CONSTRAINT HT_UI_FK FOREIGN KEY (HOTELUSERID) REFERENCES  MEMBERS(USERID) ON DELETE CASCADE
+);
+-- 호텔 예약 뷰
+CREATE VIEW HOTEL_RESERVE_LIST AS SELECT B.*, Q.*, ROW_NUMBER() OVER(ORDER BY B.HOTELCHECKIN) AS RN FROM HOTEL_RESERVATION B, HOTEL Q WHERE HOTELCODE=HOTELRESERVECODE;
+-- 호텔 예약 시퀀스
+CREATE SEQUENCE HOTEL_RESERVE_SEQ INCREMENT BY 1 START WITH 1 ;
+
+
+
+
+
+--/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+select * from members;
+
+
+-- 병원 정보 테이블 
+CREATE TABLE MEDICAL_DOCTOR(
+    DOCTORNAME NVARCHAR2(5) NOT NULL,
+    DOCTORCODE NVARCHAR2(4) PRIMARY KEY,
+    DOCTORIMAGE NVARCHAR2(100),
+    DOCTOROFF NVARCHAR2(20),
+    DOCTORCAREER NVARCHAR2(1000),
+    DOCTORSUBJECT NVARCHAR2(1000) NOT NULL,
+    KIND NVARCHAR2(3) NOT NULL
+);
+INSERT INTO MEDICAL_DOCTOR VALUES('히리', 'DT01', '히리.jpg', '매주 화요일', '- 레어펫 내과/심장/내분비/중환자의학/종양/심장초음파 전문의<br/>- 한국수의안과연구회 이사<br/>- 건국대학교 수의과대학 현겸임교수<br/>- 올 해 최고의 외과인 10인 선정 (2019)- 심장 의학계 컴퍼런스 발표 (2019)<br/>- 건국대학교 수의과대학 수의외과학 대학원 외과박사<br/>- 카톨릭대학교 의과대학 안과학교실/안은행 연구원<br/>- 서울 성모병원 안센터 전안부 각막이식post doc(국비)', '내과, 심장, 내부빈, 중환자의학, 종양, 심장초음파','병원');
+INSERT INTO MEDICAL_DOCTOR VALUES('이문익', 'DT02', '수의사 2.jpg', '매주 월요일', '- 전공(외과/정형외과)<br/>- 레어펫 외과과장/(2차 진료, 수술의)<br/>- 건국대학교 수의외과학 대학원 석사<br/>- 건국대학교 수의과대학 수의외과학 대학원 외과박사<br/>- 건국대학교 수의과대학 부속 동물병원 인턴 및 레지던트 수료<br/>- 건국대학교 수의과대학 부속 동물병원실습 강사<br/>- 건국대학교 특수임상클리닉(안과)강사<br/>- 임상수의학화 회원<br/>- 수의정형외과 국제학술단체 (AOVET)회원<br/>
+                                    <연수 및 이수>- 2011 World Small animal Veterinary Association Congress 이수<br/>- 2009~2017 한국임상수의학회 컨퍼런스 발표<br/>- 2016 국제 고양이 수의학회 ISFM 이수<br/>- 2016 Agressive osteoblastoma of the cervical vertebrae in Turkish angora cat 이수<br/>- 2016 AOVET Course principles in Small animal Fracture Management 이수<br/>- 2017 A poly-D,L-lactide-co-grycolide and small intesinal submucosa hybrid scaffold for tendon tissue engineering 이수<br/>', '일반외과, 정형외과, 신경외과','병원');
+INSERT INTO MEDICAL_DOCTOR VALUES('최가람', 'DT03', '수의사 3.jpg', '매주 목요일', '- 서울대학교 수의과 대학원 석사<br/>- 전공 (외과/정형,신경외과)<br/>- 레어펫 응급의학과 과장/(2차 진료/수술의)<br/>- 서울대학교 수의과대학 수의외과학 대학원 석사<br/>- 서울대학교 수의과대학 부속 동물병원 레지던트 수료<br/>- 서울대학교 수의과대학 부속 동물병원 외과/정형, 신경 외과 진료 수의사<br/>- 서울대학교 부속 동물병원 증례 구두 발표<br/>- 국대 다수 동물병원 외과 자문 수의사<br/>- 주계한국임상수의학회 구두발표<br/>- 춘계한국임상수의학회 구두발표<br/>- 춘계한국임상수의학회 표창장 수상<br/>- 서울대학교 수의과 대학원 석사<br/>', '응급의학과, 중환자실','병원');
+INSERT INTO MEDICAL_DOCTOR VALUES('조아라', 'DT04', '수의사 4.jpg', '매주 수요일', '- 레어펫 진료원장<br/>- 고양이 / 내과 / 수술의<br/>- 레어펫 진료원장 / (2차 진료의 / 고양이)<br/>- 건국대학교 수의과대학 대학원 석사<br/>- 한국 안과 수의학회 정회원<br/>- 한국 임상 수의학회 정회원<br/>- ISFM (국제 고양이 수의학회 정회원)<br/>- 한국 고양이 수의학회 정회원<br/>- 국내 다수 동물병원 고양이 자문 수의사<br/>
+                                    <연수 및 이수>- 2011 World Small animal Veterinary Association Congress 이수<br/>- 2009~2017 한국임상수의학회 컨퍼런스 발표<br/>- 2016 국제 고양이 수의학회 ISFM 이수<br/>- 2016 Agressive osteoblastoma of the cervical vertebrae in Turkish angora cat 이수<br/>- 2016 AOVET Course principles in Small animal Fracture Management 이수<br/>- 2017 A poly-D,L-lactide-co-grycolide and small intesinal submucosa hybrid scaffold for tendon tissue engineering 이수<br/>', '내과, 고양이 진료, 피부','병원');
+
+
+-- 병원 예약 정보 테이블
+CREATE TABLE MEDICAL_RESERVATION(
+    MEDICALRESERVENUM NUMBER,
+    MEDICALRESERVEDATE DATE,
+    MEDICALRESERVETIME NVARCHAR2(4),
+    MEDICALRESERVEANIMALKIND NVARCHAR2(3) NOT NULL,
+    MEDICALRESERVEANIMALAGE NUMBER,
+    MEDICALRESERVEANIMALNOTE NVARCHAR2(500),
+    MEDICALRESERVESUBJECT NVARCHAR2(1000) NOT NULL,
+    MEDICALRESERVEDOCTOR NVARCHAR2(4) NOT NULL,
+    MEDICALRESERVEUSERID NVARCHAR2(15) NOT NULL,
+    MEDICALRESERVEPRICE NUMBER NOT NULL,
+    MEDICALRESERVEPOINT NUMBER,
+    MEDICALRESERVEPAYMENT NVARCHAR2(6) NOT NULL,
+    MEDICALREVIEW NUMBER,
+
+    CONSTRAINT MRD_MRT_PK PRIMARY KEY(MEDICALRESERVEDATE, MEDICALRESERVETIME),
+    CONSTRAINT MR_RD_FK FOREIGN KEY (MEDICALRESERVEDOCTOR) REFERENCES MEDICAL_DOCTOR(DOCTORCODE) ON DELETE CASCADE,
+    CONSTRAINT MR_RU_FK FOREIGN KEY (MEDICALRESERVEUSERID) REFERENCES MEMBERS(USERID) ON DELETE CASCADE
+);
+-- 병원 예약 뷰
+CREATE VIEW MEDICAL_RESERVE_LIST AS SELECT B.*, Q.*, ROW_NUMBER() OVER(ORDER BY B.MEDICALRESERVEDATE ASC, B.MEDICALRESERVETIME ASC) 
+AS RN FROM MEDICAL_RESERVATION B, MEDICAL_DOCTOR Q WHERE Q.DOCTORCODE=B.MEDICALRESERVEDOCTOR;
+-- 병원 예약 시퀀스
+CREATE SEQUENCE MEDICAL_RESERVE_SEQ INCREMENT BY 1 START WITH 1 ;
+
+
+
+
+
+
+
+--/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+-- 미용 디자이너 정보 테이블
+CREATE TABLE BEAUTY_DESIGNER(
+    DESIGNERNAME NVARCHAR2(5) NOT NULL,
+    DESIGNERCODE NVARCHAR2(4) PRIMARY KEY,
+    DESIGNERIMAGE NVARCHAR2(100),
+    DESIGNEROFF NVARCHAR2(20) NOT NULL,
+    DESIGNERCAREER NVARCHAR2(1000),
+    KIND NVARCHAR2(3) NOT NULL
+);
+INSERT INTO BEAUTY_DESIGNER VALUES('오아람 ', 'DS01', 'beautyDesigner2.jpg', '격주 화요일, 토요일', '-우리 반려동물이 달라졌어요 출간(2020)<br/>- 미용학 전공 국제자격증 취득(2019)<br/>- 제 5회 한국펫미용 국제미용대회 수상(2018)<br/>- 반려동물이 행복한 목욕 출간(2017)<br/>- 연암대학교 미용학과 졸업<br/>- 우송정보대학 로얄그루밍스쿨 과장(2017~)<br/>- 제1회 Star King 펫콘테스트 금상(2014)','미용');
+INSERT INTO BEAUTY_DESIGNER VALUES('김형준', 'DS02', 'beautyDesigner3.jpg', '매주 월요일', '- 제 53회 KKF 애견미용사 자격검정 심사위원(2020)<br/>-미용 전문 대학 전임 교수(2019~) <br/>- 제 17회 내셔널 토탈 펫미용 콘테스트 은상 (2019)<br/>- 올 해 최고의 미용인 10인 선정 (2018)<br/>- 대한미용사회 대표이사<br/>- 2016 제4회 월드펫뷰티페스티벌 입상<br/>- 2012 무한도전 펫미용 대회 수상','미용');
+INSERT INTO BEAUTY_DESIGNER VALUES('박하준', 'DS03', 'beautyDesigner4.jpg', '매주 목요일', '- 국제 컴퍼런스 논문 발표 (2020)<br/>- 종합 반려동물박람회 심사위원(2018)<br/>- 건국대학교 펫미용과 졸업<br/>- 반려동물 케어 수상 (2014)<br/>- 국제 펫디자인 엑스포 제6회 기능대회 입상(2013)<br/>- 서경대학교 전국펫미용경진대회 동상(2012)<br/>- (주) 끌리페 금상(2012)','미용');
+INSERT INTO BEAUTY_DESIGNER VALUES('이준석', 'DS04', 'beautyDesigner5.jpg', '매주 수요일', '- SASD 2020 펫미용경진대회 최우수상(2020)<br/>- 아이비알뷰티아카데미 수원 캠퍼스 원장(2018~)<br/>- 제4회 Star King 펫콘테스트 동상(2017)<br/>- 미용 전문 대학 전임 교수 임명 (2016) <br/>- 특별 전문 미용사 선정 (2015)<br/>- 대한민국 국제 펫뷰티 수상(2012)<br/>- 무한도전 펫미용 대회 수상(2012)','미용');
+
+-- 미용 예약 테이블
+CREATE TABLE BEAUTY_RESERVATION(
+    BEAUTYRESERVENUM NUMBER,
+    BEAUTYRESERVEDATE DATE,
+    BEAUTYRESERVETIME NVARCHAR2(4),
+    BEAUTYRESERVEANIMALKIND NVARCHAR2(3) NOT NULL,
+    BEAUTYRESERVEANIMALAGE NUMBER,
+    BEAUTYRESERVEANIMALNOTE NVARCHAR2(1000),
+    BEAUTYRESERVESUBJECT NVARCHAR2(50) NOT NULL,
+    BEAUTYRESERVEDESIGNER NVARCHAR2(4) NOT NULL,
+    BEAUTYRESERVEUSERID NVARCHAR2(15) NOT NULL,
+    BEAUTYRESERVEPRICE NUMBER NOT NULL,
+    BEAUTYRESERVEPOINT NUMBER,
+    BEAUTYRESERVEPAYMENT NVARCHAR2(6),
+    BEAUTYREVIEW NUMBER,
+
+    CONSTRAINT BRD_BRT_PK PRIMARY KEY(BEAUTYRESERVEDATE, BEAUTYRESERVETIME),
+    CONSTRAINT BR_RD_FK FOREIGN KEY (BEAUTYRESERVEDESIGNER) REFERENCES BEAUTY_DESIGNER(DESIGNERCODE) ON DELETE CASCADE,
+    CONSTRAINT BR_UI_FK FOREIGN KEY (BEAUTYRESERVEUSERID) REFERENCES MEMBERS(USERID) ON DELETE CASCADE
+);
+-- 미용 예약 뷰
+CREATE VIEW BEAUTY_RESERVE_LIST AS SELECT B.*, Q.*, ROW_NUMBER() OVER(ORDER BY B.BEAUTYRESERVEDATE ASC, B.BEAUTYRESERVETIME ASC) 
+AS RN FROM BEAUTY_RESERVATION B, BEAUTY_DESIGNER Q WHERE Q.DESIGNERCODE=B.BEAUTYRESERVEDESIGNER;
+-- 미용 예약 시퀀스
+CREATE SEQUENCE BEAUTY_RESERVE_SEQ INCREMENT BY 1 START WITH 1 ;
+
+
+
+--/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+-- 용품 정보 테이블
+CREATE TABLE GOODS(
+    GOODSNUM NUMBER PRIMARY KEY,
+    GOODSNAME NVARCHAR2(50) NOT NULL,
+    GOODSPRICE NUMBER NOT NULL,
+    GOODSSTOCK NUMBER NOT NULL,
+    GOODSANIMALKIND NVARCHAR2(10) NOT NULL,
+    GOODSCATEGORY NVARCHAR2(10) NOT NULL,
+    GOODSLIKE NUMBER NOT NULL,
+    GOODSHIT NUMBER NOT NULL,
+    GOODSCONTENTS NVARCHAR2(500) NOT NULL,
+    GOODSIMAGE1 NVARCHAR2(100),
+    GOODSIMAGE2 NVARCHAR2(100),
+    GOODSIMAGE3 NVARCHAR2(100),
+    GOODSIMAGE4 NVARCHAR2(100),
+    GOODSIMAGE5 NVARCHAR2(100),
+    GOODSPOINT NUMBER,
+    KIND NVARCHAR2(2)
+);
+--용품 시퀀스
+CREATE SEQUENCE GOODSNUM_SEQ INCREMENT BY 1 START WITH 1 ; 
+--용품 뷰
+CREATE VIEW GOODS_LIST AS SELECT B.*, ROW_NUMBER() OVER(ORDER BY GOODSNUM) AS RN FROM GOODS B;
+--
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'내츄럴 키티 오븐에 구운 닭가슴살',12000,100,'고양이','간식',0,0,'내츄럴 키티 오븐에 구운 닭가슴살View.jpg','내츄럴 키티 오븐에 구운 닭가슴살1.jpg','내츄럴 키티 오븐에 구운 닭가슴살2.jpg','내츄럴 키티 오븐에 구운 닭가슴살3.jpg','','',0,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'너를 위한 디저트 고야이캔디',8000,100,'고양이','간식',0,0,'너를 위한 디저트 고야이캔디View.jpg','너를 위한 디저트 고야이캔디1.jpg','너를 위한 디저트 고야이캔디2.jpg','너를 위한 디저트 고야이캔디3.jpg','너를 위한 디저트 고야이캔디4.jpg','너를 위한 디저트 고야이캔디5.jpg',0,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'덱사스 스크럽 버스터 고양이용',7000,100,'고양이','기타',0,0,'덱사스 스크럽 버스터 고양이용View.jpg','덱사스 스크럽 버스터 고양이용1.jpg','덱사스 스크럽 버스터 고양이용2.jpg','덱사스 스크럽 버스터 고양이용3.jpg','덱사스 스크럽 버스터 고양이용4.jpg','',0,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'루어캣 숨숨집',35000,50,'고양이','장난감',0,0,'루어캣 숨숨집View.jpg','루어캣 숨숨집1.jpg','루어캣 숨숨집2.jpg','루어캣 숨숨집3.jpg','루어캣 숨숨집4.jpg','루어캣 숨숨집5.jgp',0,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'먀우먀우 크리미',10000,100,'고양이','간식',0,0,'먀우먀우 크리미View.jpg','먀우먀우 크리미1.jpg','먀우먀우 크리미2.jpg','먀우먀우 크리미3.jpg','먀우먀우 크리미4.jpg','먀우먀우 크리미5.jpg',0,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'베토퀴놀 오티프리 귀세정제',18000,50,'고양이','기타',0,0,'베토퀴놀 오티프리 귀세정제View.jpg','베토퀴놀 오티프리 귀세정제1.jpg','베토퀴놀 오티프리 귀세정제2.jpg','베토퀴놀 오티프리 귀세정제3.jpg','베토퀴놀 오티프리 귀세정제4.jpg','베토퀴놀 오티프리 귀세정제5.jpg',0,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'앱소루트 호리스틱 캣 그레인프리',30000,100,'고양이','사료',0,0,'앱소루트 호리스틱 캣 그레인프리View.jpg','앱소루트 호리스틱 캣 그레인프리1.jpg','앱소루트 호리스틱 캣 그레인프리2.jpg','앱소루트 호리스틱 캣 그레인프리3.jpg','','',0,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'이나바 챠오 에너지 츄르',15000,100,'고양이','간식',0,0,'이나바 챠오 에너지 츄르View.jpg','이나바 챠오 에너지 츄르1.jpg','이나바 챠오 에너지 츄르2.jpg','이나바 챠오 에너지 츄르3.jpg','이나바 챠오 에너지 츄르4.jpg','',0,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'키튼400g로얄캐닌 마더 앤 베이비캣 주식캔',28000,50,'고양이','사료',0,0,'키튼400g로얄캐닌 마더 앤 베이비캣 주식캔View.jpg','키튼400g로얄캐닌 마더 앤 베이비캣 주식캔1.jpg','키튼400g로얄캐닌 마더 앤 베이비캣 주식캔2.jpg','키튼400g로얄캐닌 마더 앤 베이비캣 주식캔3.jpg','키튼400g로얄캐닌 마더 앤 베이비캣 주식캔4.jpg','키튼400g로얄캐닌 마더 앤 베이비캣 주식캔5.jpg',0,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'프로덴 플라그오프 파우더 고양이겸용',12000,100,'고양이','기타',0,0,'프로덴 플라그오프 파우더 고양이겸용View.jpg','프로덴 플라그오프 파우더 고양이겸용1.jpg','프로덴 플라그오프 파우더 고양이겸용2.jpg','프로덴 플라그오프 파우더 고양이겸용3.jpg','프로덴 플라그오프 파우더 고양이겸용4.jpg','프로덴 플라그오프 파우더 고양이겸용5.jpg',0,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'하겐 캣잇 2.0 플레이 트릿 스피너',13000,100,'고양이','장난감',0,0,'하겐 캣잇 2.0 플레이 트릿 스피너View.jpg','하겐 캣잇 2.0 플레이 트릿 스피너1.jpg','하겐 캣잇 2.0 플레이 트릿 스피너2.jpg','하겐 캣잇 2.0 플레이 트릿 스피너3.jpg','하겐 캣잇 2.0 플레이 트릿 스피너4.jpg','하겐 캣잇 2.0 플레이 트릿 스피너5.jpg',0,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'하림 더리얼 슬림 닭가슴살 고양이 캔',4000,300,'고양이','간식',0,0,'하림 더리얼 슬림 닭가슴살 고양이 캔View.jpg','하림 더리얼 슬림 닭가슴살 고양이 캔1.jpg','하림 더리얼 슬림 닭가슴살 고양이 캔2.jpg','하림 더리얼 슬림 닭가슴살 고양이 캔3.jpg','','',0,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'하림 더리얼 캣 그레인프리 크런치 시니어',34000,100,'고양이','사료',0,0,'하림 더리얼 캣 그레인프리 크런치 시니어View.jpg','하림 더리얼 캣 그레인프리 크런치 시니어1.jpg','하림 더리얼 캣 그레인프리 크런치 시니어2.jpg','하림 더리얼 캣 그레인프리 크런치 시니어3.jpg','','',0,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'헨더슨 티파냥 메두사 낚시대',10000,100,'고양이','장난감',0,0,'헨더슨 티파냥 메두사 낚시대View.jpg','헨더슨 티파냥 메두사 낚시대1.jpg','헨더슨 티파냥 메두사 낚시대2.jpg','헨더슨 티파냥 메두사 낚시대3.jpg','헨더슨 티파냥 메두사 낚시대4.jpg','헨더슨 티파냥 메두사 낚시대5.jpg',0,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'핸더슨 티파냥 천연 와이어 낚시대',10000,100,'고양이','장난감',0,0,'핸더슨 티파냥 천연 와이어 낚시대View.jpg','핸더슨 티파냥 천연 와이어 낚시대1.jpg','핸더슨 티파냥 천연 와이어 낚시대2.jpg','핸더슨 티파냥 천연 와이어 낚시대3.jpg','핸더슨 티파냥 천연 와이어 낚시대4.jpg','핸더슨 티파냥 천연 와이어 낚시대5.jpg',0,'용품');
+
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'후코홀릭 명태베리',5000,50,'강아지','간식',0,0,'후코홀릭 명태베리View.jpg','후코홀릭 명태베리1.jpg','후코홀릭 명태베리2.jpg','후코홀릭 명태베리3.jpg','후코홀릭 명태베리4.jpg','후코홀릭 명태베리5.jpg',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'후코홀릭 명태녹차',7000,100,'강아지','간식',0,0,'후코홀릭 명태녹차View.jpg','후코홀릭 명태녹차1.jpg','후코홀릭 명태녹차2.jpg','후코홀릭 명태녹차3.jpg','후코홀릭 명태녹차4.jpg','후코홀릭 명태녹차5.jpg',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'피니키 크리스피 치즈황태',12000,100,'강아지','간식',0,0,'피니키 크리스피 치즈황태View.jpg','피니키 크리스피 치즈황태1.jpg','피니키 크리스피 치즈황태2.jpg','피니키 크리스피 치즈황태3.jpg','피니키 크리스피 치즈황태4.jpg','피니키 크리스피 치즈황태5.jpg',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'피니키 오리가슴살 슬라이스',9000,100,'강아지','간식',0,0,'피니키 오리가슴살 슬라이스View.jpg','피니키 오리가슴살 슬라이스1.jpg','피니키 오리가슴살 슬라이스2.jpg','피니키 오리가슴살 슬라이스3.jpg','피니키 오리가슴살 슬라이스4.jpg','피니키 오리가슴살 슬라이스5.jpg',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'피니키 대구 슬라이스',6000,100,'강아지','간식',0,0,'피니키 대구 슬라이스View.jpg','피니키 대구 슬라이스1.jpg','피니키 대구 슬라이스2.jpg','피니키 대구 슬라이스3.jpg','피니키 대구 슬라이스4.jpg','피니키 대구 슬라이스5.jpg',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'프롬네이처 소고기 큐브',10000,100,'강아지','간식',0,0,'프롬네이처 소고기 큐브View.jpg','프롬네이처 소고기 큐브1.jpg','프롬네이처 소고기 큐브2.jpg','프롬네이처 소고기 큐브3.jpg','프롬네이처 소고기 큐브4.jpg','프롬네이처 소고기 큐브5.jpg',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'팩앤프라이드 동결건조 오리가슴살',12000,100,'강아지','간식',0,0,'팩앤프라이드 동결건조 오리가슴살View.jpg','팩앤프라이드 동결건조 오리가슴살1.jpg','팩앤프라이드 동결건조 오리가슴살2.jpg','팩앤프라이드 동결건조 오리가슴살3.jpg','팩앤프라이드 동결건조 오리가슴살4.jpg','팩앤프라이드 동결건조 오리가슴살5.jpg',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'츄통령 바삭츄 동결건조 닭가슴살',10000,100,'강아지','간식',0,0,'츄통령 바삭츄 동결건조 닭가슴살View.jpg','츄통령 바삭츄 동결건조 닭가슴살1.jpg','츄통령 바삭츄 동결건조 닭가슴살2.jpg','츄통령 바삭츄 동결건조 닭가슴살3.jpg','츄통령 바삭츄 동결건조 닭가슴살4.jpg','츄통령 바삭츄 동결건조 닭가슴살5.jpg',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'츄통령 리얼츄 스팀 닭가슴살',7000,100,'강아지','간식',0,0,'츄통령 리얼츄 스팀 닭가슴살View.jpg','츄통령 리얼츄 스팀 닭가슴살1.jpg','츄통령 리얼츄 스팀 닭가슴살2.jpg','츄통령 리얼츄 스팀 닭가슴살3.jpg','츄통령 리얼츄 스팀 닭가슴살4.jpg','츄통령 리얼츄 스팀 닭가슴살5.jpg',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'오마이도기 동결건조 망고칩',6000,100,'강아지','간식',0,0,'오마이도기 동결건조 망고칩View.jpg','오마이도기 동결건조 망고칩1.jpg','오마이도기 동결건조 망고칩2.jpg','오마이도기 동결건조 망고칩3.jpg','오마이도기 동결건조 망고칩4.jpg','오마이도기 동결건조 망고칩5.jpg',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'에프디트릿 호박',11000,100,'강아지','간식',0,0,'에프디트릿 호박View.jpg','에프디트릿 호박1.jpg','에프디트릿 호박2.jpg','에프디트릿 호박3.jpg','에프디트릿 호박4.jpg','에프디트릿 호박5.jpg',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'에프디트릿 초록입홍합',1000,100,'강아지','간식',0,0,'에프디트릿 초록입홍합View.jpg','에프디트릿 초록입홍합1.jpg','에프디트릿 초록입홍합2.jpg','에프디트릿 초록입홍합3.jpg','에프디트릿 초록입홍합4.jpg','에프디트릿 초록입홍합5.jpg',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'비타크래프트 퓨어 덕 스트립',5000,100,'강아지','간식',0,0,'비타크래프트 퓨어 덕 스트립View.jpg','비타크래프트 퓨어 덕 스트립1.jpg','비타크래프트 퓨어 덕 스트립2.jpg','비타크래프트 퓨어 덕 스트립3.jpg','비타크래프트 퓨어 덕 스트립4.jpg','비타크래프트 퓨어 덕 스트립5.jpg',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'미스터 쿡 연어 슬라이스',10000,100,'강아지','간식',0,0,'미스터 쿡 연어 슬라이스View.jpg','미스터 쿡 연어 슬라이스1.jpg','미스터 쿡 연어 슬라이스2.jpg','미스터 쿡 연어 슬라이스3.jpg','미스터 쿡 연어 슬라이스4.jpg','미스터 쿡 연어 슬라이스5.jpg',5000,'용품');
+
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'ANF 프리미엄 램',25000,100,'강아지','사료',0,0,'ANF 프리미엄 램View.jpg','ANF 프리미엄 램1.jpg','ANF 프리미엄 램2.jpg','ANF 프리미엄 램3.jpg','ANF 프리미엄 램4.jpg','ANF 프리미엄 램5.jpg',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'네츄럴코어 유기농 에코 연어',23000,100,'강아지','사료',0,0,'네츄럴코어 유기농 에코 연어View.jpg','네츄럴코어 유기농 에코 연어1.jpg','네츄럴코어 유기농 에코 연어2.jpg','네츄럴코어 유기농 에코 연어3.jpg','네츄럴코어 유기농 에코 연어4.jpg','네츄럴코어 유기농 에코 연어5.jpg',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'뉴웨이브 홀리스틱 3 오리고기고구마',26000,100,'강아지','사료',0,0,'뉴웨이브 홀리스틱 3 오리고기고구마View.jpg','뉴웨이브 홀리스틱 3 오리고기고구마1.jpg','뉴웨이브 홀리스틱 3 오리고기고구마2.jpg','뉴웨이브 홀리스틱 3 오리고기고구마3.jpg','뉴웨이브 홀리스틱 3 오리고기고구마4.jpg','뉴웨이브 홀리스틱 3 오리고기고구마5.jpg',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'뉴트리나 건강백서 건강한 관절',30000,100,'강아지','사료',0,0,'뉴트리나 건강백서 건강한 관절View.jpg','뉴트리나 건강백서 건강한 관절1.jpg','뉴트리나 건강백서 건강한 관절2.jpg','뉴트리나 건강백서 건강한 관절3.jpg','뉴트리나 건강백서 건강한 관절4.jpg','뉴트리나 건강백서 건강한 관절5.jpg',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'뉴트리나 건강백서 말티즈',29000,100,'강아지','사료',0,0,'뉴트리나 건강백서 말티즈View.jpg','뉴트리나 건강백서 말티즈1.jpg','뉴트리나 건강백서 말티즈2.jpg','뉴트리나 건강백서 말티즈3.jpg','뉴트리나 건강백서 말티즈4.jpg','뉴트리나 건강백서 말티즈5.jpg',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'더독 닥터소프트 치킨 시니어',29000,100,'강아지','사료',0,0,'더독 닥터소프트 치킨 시니어View.jpg','더독 닥터소프트 치킨 시니어1.jpg','더독 닥터소프트 치킨 시니어2.jpg','더독 닥터소프트 치킨 시니어3.jpg','더독 닥터소프트 치킨 시니어4.jpg','더독 닥터소프트 치킨 시니어5.jpg',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'더리얼 그레인프리 크런치 소고기',31000,100,'강아지','사료',0,0,'더리얼 그레인프리 크런치 소고기View.jpg','더리얼 그레인프리 크런치 소고기1.jpg','더리얼 그레인프리 크런치 소고기2.jpg','더리얼 그레인프리 크런치 소고기3.jpg','더리얼 그레인프리 크런치 소고기4.jpg','더리얼 그레인프리 크런치 소고기5.jpg',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'드now 그레인프리 퍼피 스몰브리드',30000,100,'강아지','사료',0,0,'드now 그레인프리 퍼피 스몰브리드View.jpg','드now 그레인프리 퍼피 스몰브리드1.jpg','드now 그레인프리 퍼피 스몰브리드2.jpg','드now 그레인프리 퍼피 스몰브리드3.jpg','드now 그레인프리 퍼피 스몰브리드4.jpg','드now 그레인프리 퍼피 스몰브리드5.jpg',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'로얄캐닌 미니 인도어 어덜트',24000,100,'강아지','사료',0,0,'로얄캐닌 미니 인도어 어덜트View.jpg','로얄캐닌 미니 인도어 어덜트1.jpg','로얄캐닌 미니 인도어 어덜트2.jpg','로얄캐닌 미니 인도어 어덜트3.jpg','로얄캐닌 미니 인도어 어덜트4.jpg','로얄캐닌 미니 인도어 어덜트5.jpg',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'시저 불고기 캔',30000,100,'강아지','사료',0,0,'시저 불고기 캔View.jpg','시저 불고기 캔1.jpg','시저 불고기 캔2.jpg','시저 불고기 캔3.jpg','시저 불고기 캔4.jpg','시저 불고기 캔5.jpg',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'시저 쇠고기 캔',29000,100,'강아지','사료',0,0,'시저 쇠고기 캔View.jpg','시저 쇠고기 캔1.jpg','시저 쇠고기 캔2.jpg','시저 쇠고기 캔3.jpg','시저 쇠고기 캔4.jpg','시저 쇠고기 캔5.jpg',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'시저 쇠고기와 참치 캔',28000,100,'강아지','사료',0,0,'시저 쇠고기와 참치 캔View.jpg','시저 쇠고기와 참치 캔1.jpg','시저 쇠고기와 참치 캔2.jpg','시저 쇠고기와 참치 캔3.jpg','시저 쇠고기와 참치 캔4.jpg','시저 쇠고기와 참치 캔5.jpg',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'시저 심플리 크래프티드 쇠고기',30000,100,'강아지','사료',0,0,'시저 심플리 크래프티드 쇠고기View.jpg','시저 심플리 크래프티드 쇠고기1.jpg','시저 심플리 크래프티드 쇠고기2.jpg','시저 심플리 크래프티드 쇠고기3.jpg','시저 심플리 크래프티드 쇠고기4.jpg','시저 심플리 크래프티드 쇠고기5.jpg',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'시저 양고기 캔',31000,100,'강아지','사료',0,0,'시저 양고기 캔View.jpg','시저 양고기 캔1.jpg','시저 양고기 캔2.jpg','시저 양고기 캔3.jpg','시저 양고기 캔4.jpg','시저 양고기 캔5.jpg',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'시저 흰살생선과 야채 캔',28000,100,'강아지','사료',0,0,'시저 흰살생선과 야채 캔View.jpg','시저 흰살생선과 야채 캔1.jpg','시저 흰살생선과 야채 캔2.jpg','시저 흰살생선과 야채 캔3.jpg','시저 흰살생선과 야채 캔4.jpg','시저 흰살생선과 야채 캔5.jpg',5000,'용품');
+
+
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'후르타 아웃백 부츠',20000,100,'강아지','악세사리',0,0,'후르타 아웃백 부츠View.jpg','후르타 아웃백 부츠1.jpg','후르타 아웃백 부츠2.jpg','후르타 아웃백 부츠3.jpg','후르타 아웃백 부츠4.jpg','후르타 아웃백 부츠5.jpg',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'헤이제리 테디베어 퍼 후드 핑크',18000,100,'강아지','악세사리',0,0,'헤이제리 테디베어 퍼 후드 핑크View.jpg','헤이제리 테디베어 퍼 후드 핑크1.jpg','헤이제리 테디베어 퍼 후드 핑크2.jpg','헤이제리 테디베어 퍼 후드 핑크3.jpg','','',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'헤이제리 테디베어 퍼 후드 블루',19000,100,'강아지','악세사리',0,0,'헤이제리 테디베어 퍼 후드 블루View.jpg','헤이제리 테디베어 퍼 후드 블루1.jpg','헤이제리 테디베어 퍼 후드 블루2.jpg','헤이제리 테디베어 퍼 후드 블루3.jpg','','',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'헤이제리 컬러 블록 후드 네이비',23000,100,'강아지','악세사리',0,0,'헤이제리 컬러 블록 후드 네이비View.jpg','헤이제리 컬러 블록 후드 네이비1.jpg','헤이제리 컬러 블록 후드 네이비2.jpg','헤이제리 컬러 블록 후드 네이비3.jpg','','',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'헤이제리 빅베이비 턱받이',25000,100,'강아지','악세사리',0,0,'헤이제리 빅베이비 턱받이View.jpg','헤이제리 빅베이비 턱받이1.jpg','헤이제리 빅베이비 턱받이2.jpg','헤이제리 빅베이비 턱받이3.jpg','헤이제리 빅베이비 턱받이4.jpg','',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'헤이제리 베이비 걸 턱받이',26000,100,'강아지','악세사리',0,0,'헤이제리 베이비 걸 턱받이View.jpg','헤이제리 베이비 걸 턱받이1.jpg','헤이제리 베이비 걸 턱받이2.jpg','헤이제리 베이비 걸 턱받이3.jpg','헤이제리 베이비 걸 턱받이4.jpg','',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'헤이제리 롤리팝 크롭 후드 핑크',29000,100,'강아지','악세사리',0,0,'헤이제리 롤리팝 크롭 후드 핑크View.jpg','헤이제리 롤리팝 크롭 후드 핑크1.jpg','헤이제리 롤리팝 크롭 후드 핑크2.jpg','헤이제리 롤리팝 크롭 후드 핑크3.jpg','','',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'헤이제리 롤리팝 크롭 후드 레드',25000,100,'강아지','악세사리',0,0,'헤이제리 롤리팝 크롭 후드 레드View.jpg','헤이제리 롤리팝 크롭 후드 레드1.jpg','헤이제리 롤리팝 크롭 후드 레드2.jpg','헤이제리 롤리팝 크롭 후드 레드3.jpg','','',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'헤이제리 레인보우 플라워 인식표 목걸이1',20000,100,'강아지','악세사리',0,0,'헤이제리 레인보우 플라워 인식표 목걸이View.jpg','헤이제리 레인보우 플라워 인식표 목걸이1.jpg','헤이제리 레인보우 플라워 인식표 목걸이2.jpg','헤이제리 레인보우 플라워 인식표 목걸이3.jpg','헤이제리 레인보우 플라워 인식표 목걸이4.jpg','',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'플로트 콤비 후드 옐로우핫핑크',27000,100,'강아지','악세사리',0,0,'플로트 콤비 후드 옐로우핫핑크View.jpg','플로트 콤비 후드 옐로우핫핑크1.jpg','플로트 콤비 후드 옐로우핫핑크2.jpg','플로트 콤비 후드 옐로우핫핑크3.jpg','','',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'플로트 콤비 후드 아이보리블루',26000,100,'강아지','악세사리',0,0,'플로트 콤비 후드 아이보리블루View.jpg','플로트 콤비 후드 아이보리블루1.jpg','플로트 콤비 후드 아이보리블루2.jpg','플로트 콤비 후드 아이보리블루3.jpg','','',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'플로트 컬러 블록 후드 화이트레드',24000,100,'강아지','악세사리',0,0,'플로트 컬러 블록 후드 화이트레드View.jpg','플로트 컬러 블록 후드 화이트레드1.jpg','플로트 컬러 블록 후드 화이트레드2.jpg','플로트 컬러 블록 후드 화이트레드3.jpg','','',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'플로트 컬러 블록 후드 옐로우그레이',29000,100,'강아지','악세사리',0,0,'플로트 컬러 블록 후드 옐로우그레이View','플로트 컬러 블록 후드 옐로우그레이1.jpg','플로트 컬러 블록 후드 옐로우그레이2.jpg','플로트 컬러 블록 후드 옐로우그레이3.jpg','','',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'플로트 스탠다드 후드 핑크',30000,100,'강아지','악세사리',0,0,'플로트 스탠다드 후드 핑크View.jpg','플로트 스탠다드 후드 핑크1.jpg','플로트 스탠다드 후드 핑크2.jpg','플로트 스탠다드 후드 핑크3.jpg','플로트 스탠다드 후드 핑크4.jpg','',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'플로트 스탠다드 후드 옐로우',27000,100,'강아지','악세사리',0,0,'플로트 스탠다드 후드 옐로우View.jpg','플로트 스탠다드 후드 옐로우1.jpg','플로트 스탠다드 후드 옐로우2.jpg','플로트 스탠다드 후드 옐로우3.jpg','플로트 스탠다드 후드 옐로우4.jpg','',5000,'용품');
+
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'도기맨 허니스마일 마사지브러쉬',15000,100,'강아지','기타',0,0,'도기맨 허니스마일 마사지브러쉬View.jpg','도기맨 허니스마일 마사지브러쉬1.jpg','도기맨 허니스마일 마사지브러쉬2.jpg','도기맨 허니스마일 마사지브러쉬3.jpg','','',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'도기맨 허니스마일 소프트 슬리커',12000,100,'강아지','기타',0,0,'도기맨 허니스마일 소프트 슬리커View.jpg','도기맨 허니스마일 소프트 슬리커1.jpg','도기맨 허니스마일 소프트 슬리커2.jpg','도기맨 허니스마일 소프트 슬리커3.jpg','','',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'하이포닉 저자극샴푸 전견용',20000,100,'강아지','기타',0,0,'하이포닉 저자극샴푸 전견용View.jpg','하이포닉 저자극샴푸 전견용1.jpg','하이포닉 저자극샴푸 전견용2.jpg','하이포닉 저자극샴푸 전견용3.jpg','하이포닉 저자극샴푸 전견용4.jpg','하이포닉 저자극샴푸 전견용5.jpg',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'펫스니즈 드라이타올',11000,100,'강아지','기타',0,0,'펫스니즈 드라이타올View.jpg','펫스니즈 드라이타올1.jpg','펫스니즈 드라이타올2.jpg','','','',5000,'용품');
+
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'피단스튜디오 노즈워크 볼 레드',20000,100,'강아지','장난감',0,0,'피단스튜디오 노즈워크 볼 레드View.jpg','피단스튜디오 노즈워크 볼 레드1.jpg','피단스튜디오 노즈워크 볼 레드2.jpg','피단스튜디오 노즈워크 볼 레드3.jpg','','',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'펫긱 오토매틱 롤링볼',18000,100,'강아지','장난감',0,0,'펫긱 오토매틱 롤링볼View.jpg','펫긱 오토매틱 롤링볼1.jpg','펫긱 오토매틱 롤링볼2.jpg','펫긱 오토매틱 롤링볼3.jpg','','',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'척잇 울트라볼',19000,100,'강아지','장난감',0,0,'척잇 울트라볼View.jpg','척잇 울트라볼1.jpg','척잇 울트라볼2.jpg','척잇 울트라볼3.jpg','','',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'스타마크 디스펜싱 밥어랏',20000,100,'강아지','장난감',0,0,'스타마크 디스펜싱 밥어랏View.jpg','스타마크 디스펜싱 밥어랏1.jpg','스타마크 디스펜싱 밥어랏2.jpg','스타마크 디스펜싱 밥어랏3.jpg','스타마크 디스펜싱 밥어랏4.jpg','스타마크 디스펜싱 밥어랏5.jpg',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'블루앙쿼 우블러 트릿 타워',20000,100,'강아지','장난감',0,0,'블루앙쿼 우블러 트릿 타워View.jpg','블루앙쿼 우블러 트릿 타워1.jpg','블루앙쿼 우블러 트릿 타워2.jpg','블루앙쿼 우블러 트릿 타워3.jpg','','',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'발라당 오뚝이 장난감 1단계 대형',17000,100,'강아지','장난감',0,0,'발라당 오뚝이 장난감 1단계 대형View.jpg','발라당 오뚝이 장난감 1단계 대형1.jpg','발라당 오뚝이 장난감 1단계 대형2.jpg','발라당 오뚝이 장난감 1단계 대형3.jpg','발라당 오뚝이 장난감 1단계 대형4.jpg','',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'발라당 노즈워크 먹이퍼즐 장난감 3단계 핑크',23000,100,'강아지','장난감',0,0,'발라당 노즈워크 먹이퍼즐 장난감 3단계 핑크View.jpg','발라당 노즈워크 먹이퍼즐 장난감 3단계 핑크1.jpg','발라당 노즈워크 먹이퍼즐 장난감 3단계 핑크2.jpg','발라당 노즈워크 먹이퍼즐 장난감 3단계 핑크3.jpg','발라당 노즈워크 먹이퍼즐 장난감 3단계 핑크4.jpg','발라당 노즈워크 먹이퍼즐 장난감 3단계 핑크5.jpg',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'니나오토슨 하이든 슬라이드',27000,100,'강아지','장난감',0,0,'니나오토슨 하이든 슬라이드View.jpg','니나오토슨 하이든 슬라이드1.jpg','니나오토슨 하이든 슬라이드2.jpg','니나오토슨 하이든 슬라이드3.jpg','니나오토슨 하이든 슬라이드4.jpg','니나오토슨 하이든 슬라이드5.jpg',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'노즈워크 콩 밤부볼 장난감 원형',26000,100,'강아지','장난감',0,0,'노즈워크 콩 밤부볼 장난감 원형View.jpg','노즈워크 콩 밤부볼 장난감 원형1.jpg','노즈워크 콩 밤부볼 장난감 원형2.jpg','노즈워크 콩 밤부볼 장난감 원형3.jpg','','',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'노즈워크 콩 밤부덤벨 장난감',23000,100,'강아지','장난감',0,0,'노즈워크 콩 밤부덤벨 장난감View.jpg','노즈워크 콩 밤부덤벨 장난감1.jpg','노즈워크 콩 밤부덤벨 장난감2.jpg','노즈워크 콩 밤부덤벨 장난감3.jpg','','',5000,'용품');
+INSERT INTO GOODS VALUES(GOODSNUM_SEQ.nextVal,'노즈워크 분리불안 장난감 망고',24000,100,'강아지','장난감',0,0,'노즈워크 분리불안 장난감 망고View.jpg','노즈워크 분리불안 장난감 망고1.jpg','노즈워크 분리불안 장난감 망고2.jpg','노즈워크 분리불안 장난감 망고3.jpg','노즈워크 분리불안 장난감 망고4.jpg','',5000,'용품');
+
+
+
+
+-- 용품 장바구니 정보 테이블
+CREATE TABLE GOODS_BASKET(
+    BASKETGOODSNUM NUMBER,
+    BASKETUSERID NVARCHAR2(15),
+    BASKETGOODSCOUNT NUMBER,
+
+    CONSTRAINT GBN_GBU_PK PRIMARY KEY(BASKETGOODSNUM, BASKETUSERID),
+    CONSTRAINT GB_GN_FK FOREIGN KEY (BASKETGOODSNUM) REFERENCES GOODS(GOODSNUM) ON DELETE CASCADE,
+    CONSTRAINT GB_UI_FK FOREIGN KEY (BASKETUSERID) REFERENCES MEMBERS(USERID) ON DELETE CASCADE
+);
+
+
+-- 용품 문의 테이블
+CREATE TABLE GOODS_ASK(
+    ASKGOODSNUM NUMBER,
+    ASKNUM NUMBER PRIMARY KEY,
+    ASKCONTENTS NVARCHAR2(500) NOT NULL,
+    ASKUSERID NVARCHAR2(15),
+    ASKSECRET NVARCHAR2(3) NOT NULL,
+    ASKPW NUMBER,
+    ASKANSWER NVARCHAR2(500),
+
+    CONSTRAINT GA_GN_FK FOREIGN KEY (ASKGOODSNUM) REFERENCES GOODS(GOODSNUM) ON DELETE CASCADE,
+    CONSTRAINT GA_UI_FK FOREIGN KEY (ASKUSERID) REFERENCES MEMBERS(USERID) ON DELETE CASCADE
+);
+-- 용품 문의 뷰
+CREATE VIEW ASK_LIST AS SELECT GD.*,B.*, ROW_NUMBER() OVER(ORDER BY ASKNUM) AS RN FROM GOODS_ASK B, GOODS GD 
+WHERE ASKANSWER IS NULL AND GD.GOODSNUM=B.ASKGOODSNUM ;
+-- 용품 문의 시퀀스
+CREATE SEQUENCE GOODS_ASK_SEQ INCREMENT BY 1 START WITH 1 ; 
+
+
+-- 용품 구매 테이블
+CREATE TABLE GOODS_BUY(
+    GOODSBUYNUM NUMBER,
+    BUYGOODSNUM NUMBER NOT NULL,
+    BUYUSERID NVARCHAR2(15) NOT NULL,
+    BUYPAYMENT NVARCHAR2(6) NOT NULL,
+    BUYADDRESS NVARCHAR2(50) NOT NULL,
+    BUYDELEVERY NVARCHAR2(10) NOT NULL,
+    BUYCOUNT NUMBER NOT NULL,
+    BUYPRICE NUMBER NOT NULL,
+    GOODSREVIEW NUMBER,
+
+    CONSTRAINT GBU_GN_FK FOREIGN KEY (BUYGOODSNUM) REFERENCES GOODS(GOODSNUM) ON DELETE CASCADE,
+    CONSTRAINT GBU_UI_FK FOREIGN KEY (BUYUSERID) REFERENCES MEMBERS(USERID) ON DELETE CASCADE
+);
+-- 용품 구매 뷰
+CREATE VIEW GOODS_BUY_LIST AS SELECT B.*, Q.*, ROW_NUMBER() OVER(ORDER BY BUYGOODSNUM) 
+AS RN FROM GOODS_BUY B, GOODS Q WHERE Q.GOODSNUM=B.BUYGOODSNUM;
+-- 용품 구매 시퀀스
+CREATE SEQUENCE GOODS_BUY_SEQ INCREMENT BY 1 START WITH 1 ;
+
+
+select * from HOTEL_RESERVATION;
+
+select * from members;
+delete from members where userid='eundol0519';
+commit;
+
+-- 용품 좋아요
+CREATE TABLE GOODS_LIKE(
+    LIKEGOODSNUM NUMBER,
+    LIKEUSERID NVARCHAR2(15),
+    
+    CONSTRAINT LGN_LUI_PK PRIMARY KEY(LIKEGOODSNUM, LIKEUSERID),
+    CONSTRAINT GL_GN_FK FOREIGN KEY (LIKEGOODSNUM) REFERENCES GOODS(GOODSNUM) ON DELETE CASCADE,
+    CONSTRAINT GL_UI_FK FOREIGN KEY (LIKEUSERID) REFERENCES MEMBERS(USERID) ON DELETE CASCADE
+);
+
+
+
+
+--/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+-- 교육 정보 테이블
+CREATE TABLE EDUCATION(
+    EDUTITLE NVARCHAR2(50) NOT NULL,
+    EDUCONTENTS NVARCHAR2(500),
+    EDUIMAGE NVARCHAR2(100) NOT NULL,
+    EDUVIDEO NVARCHAR2(500) NOT NULL,
+    EDULIKE NUMBER DEFAULT 0,
+    EDUHIT NUMBER DEFAULT 0,
+    EDUNUM NUMBER PRIMARY KEY,
+    KIND NVARCHAR2(3),
+    EDUANIMALKIND NVARCHAR2(10)
+);
+-- 교육 시퀀스
+CREATE SEQUENCE EDU_SEQ INCREMENT BY 1 START WITH 1 ;
+-- 교육 뷰
+SELECT * FROM (SELECT B.*, ROW_NUMBER() OVER(ORDER BY EDUNUM) AS RN FROM EDUCATION B WHERE EDUANIMALKIND LIKE '%강아지%') WHERE RN BETWEEN 1 AND 3;
+-- 교육 내용
+INSERT INTO EDUCATION VALUES('강아지 기초교육1 - 기다려','달려드는 강아지 어떻게 훈련시켜야 할까?','기다려_기초.jpg','<iframe width="1280" height="720" src="https://www.youtube.com/embed/_m4BpL0os00" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','강아지');
+INSERT INTO EDUCATION VALUES('강아지 기초교육2 - 돌아','강아지의 기본교육 돌아!','돌아_기초.jpg','<iframe width="1280" height="720" src="https://www.youtube.com/embed/1s-V_JMmfhk" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','강아지');
+INSERT INTO EDUCATION VALUES('강아지 기초교육3 - 손','강아지와 악수를 하고싶다면?','손_기초.jpg','<iframe width="1280" height="720" src="https://www.youtube.com/embed/q9JscWEpBpI" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','강아지');
+INSERT INTO EDUCATION VALUES('강아지 기초교육4 - 엎드려','말썽꾸러기가  말을 안듣는다면 어떻게 교육을 시켜야할까?','엎드려_기초.jpg','<iframe width="1280" height="720" src="https://www.youtube.com/embed/lV5UyJlA1_U" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','강아지');
+INSERT INTO EDUCATION VALUES('강아지 기초교육5 - 켄넬','공공장소 이동할때 민폐주지 않는법?','켄넬_기초.jpg','<iframe width="1280" height="720" src="https://www.youtube.com/embed/ZEZxyGAcePc" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','강아지');
+INSERT INTO EDUCATION VALUES('강아지 기초교육6 - 가져오기','잠시라도 흥을 멈추지 못하는 우리강아지! 가져오기를 통하여 체력단련!!','가져오기.jpg','<iframe width="1280" height="720" src="https://www.youtube.com/embed/sEMjlZBZWUI" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','강아지');
+INSERT INTO EDUCATION VALUES('강아지 기초교육7 - 기다려','달려드는 강아지 어떻게 훈련시켜야 할까 심화편?','기다려_심화.jpg','<iframe width="1280" height="720" src="https://www.youtube.com/embed/qG3cZgje2CE" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','강아지');
+INSERT INTO EDUCATION VALUES('강아지 기초교육8 - 앉아','고귀하게 자라온 우리강아지가 말을 안듣는다면 어떻게 교육을 시켜야할까?','앉아.jpg','<iframe width="1280" height="720" src="https://www.youtube.com/embed/I3SpNSFBnxk" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','강아지');
+INSERT INTO EDUCATION VALUES('강아지 기초교육9 - 이리와','집에가려는데 우리 강아지가 말을 안듣는다면?','이리와.jpg','<iframe width="1280" height="720" src="https://www.youtube.com/embed/_m4BpL0os00" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','강아지');
+INSERT INTO EDUCATION VALUES('강아지 공격성 훈련으로 해결불가라고?','강아지의 공격성이 훈련말고 다른방법으로 해결법이 있다는데?','강아지 공격성 훈련으로 해결불가라고.jpg','<iframe width="560" height="315" src="https://www.youtube.com/embed/o3f8Ol8XPHE" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','강아지');
+INSERT INTO EDUCATION VALUES('강아지 구충제를 암치료에 쓴다고?','구충제 치료제인 펜벤다졸! 알고보니 암치료에 쓰는 항암제? ','강아지 구충제를 암치료에 쓴다고.jpg','<iframe width="560" height="315" src="https://www.youtube.com/embed/zEGRtKLi1pA" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','강아지');
+INSERT INTO EDUCATION VALUES('강아지 배변훈련 어떻게 해야할까?','장소를 가리지 않고 배변활동을 하는 강아지 이렇게 교육하자!','강아지 배변훈련 어떻게 해야할까.jpg','<iframe width="560" height="315" src="https://www.youtube.com/embed/fNMyyzaQQ78" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','강아지');
+INSERT INTO EDUCATION VALUES('강아지 분리불안 어떻게 치료하지?','혼자서도 잘 견딜 수 있는 건강한 강아지를 만들자!','강아지 분리불안 어떻게 치료하지.jpg','<iframe width="560" height="315" src="https://www.youtube.com/embed/l32yBvPpodE" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','강아지');
+INSERT INTO EDUCATION VALUES('강아지는 죄책감을 느낄까?','항상 밝은 모습만 보여주는 우리강아지가....','강아지는 죄책감을 느낄까.jpg','<iframe width="560" height="315" src="https://www.youtube.com/embed/Ktue2Ff706Q" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','강아지');
+INSERT INTO EDUCATION VALUES('강아지도 좋아하는 실내놀이 추천!','퍼스트 코로나 시대에 실내에서 즐겁게 우리 강아지가 놀 수 있는 방법이 있다는데?','강아지도 좋아하는 실내놀이 추천.jpg','<iframe width="560" height="315" src="https://www.youtube.com/embed/HvP5E-YQpwI" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','강아지');
+INSERT INTO EDUCATION VALUES('강아지를 위한 슬기로운 산책 생활!','우리 강아지가 즐겁게 산책을 할 수 있게 도와주세요!','강아지를 위한 슬기로운 산책 생활.jpg','<iframe width="560" height="315" src="https://www.youtube.com/embed/IzKFcCLRd9Q" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','강아지');
+INSERT INTO EDUCATION VALUES('강아지의 행동언어를 모르면 생기는 오해들?','자칫하면 강아지가 서운해 한다는데 그 진실은?','강아지의 행동언어를 모르면 생기는 오해들.jpg','<iframe width="560" height="315" src="https://www.youtube.com/embed/X0OpuaZWFow" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','강아지');
+INSERT INTO EDUCATION VALUES('고양이 말을 배워보자!','깐깐한 우리고양이와 소통을 할 수 있게!','고양이 말을 배워보자.jpg','<iframe width="560" height="315" src="https://www.youtube.com/embed/p93cD2779uk" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','고양이');
+INSERT INTO EDUCATION VALUES('고양이 삶의 질을 높이는 화장실의 모든 것!','고양이의 삶의 질을 높일 수 있는 것 화장실!','고양이 삶의 질을 높이는 화장실의 모든 것.jpg','<iframe width="560" height="315" src="https://www.youtube.com/embed/C2uuyTM7vQg" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','고양이');
+INSERT INTO EDUCATION VALUES('고양이 얼굴로 심리와 상태를 알아보자!','무표정한듯한 고양이도 표정으로 말을 한다는데?','고양이 얼굴로 심리와 상태를 알아보자.jpg','<iframe width="560" height="315" src="https://www.youtube.com/embed/zQ1KM8QWaQs" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','고양이');
+INSERT INTO EDUCATION VALUES('고양이 울음소리의 의미!','고양이가 짖을 때! 자신의 상태를 말한다는데?','고양이 울음소리의 의미.jpg','<iframe width="560" height="315" src="https://www.youtube.com/embed/zQrAgzYUxYI" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','고양이');
+INSERT INTO EDUCATION VALUES('고양이가 당신을 사랑할 때 하는 행동들!','고양이도 애정표현을 한다고 하는데 어떤방식으로 할까요?','고양이가 당신을 사랑할 때 하는 행동들.jpg','<iframe width="560" height="315" src="https://www.youtube.com/embed/hvNqM2Rtoc0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','고양이');
+INSERT INTO EDUCATION VALUES('고양이가 물어요 왜 무는걸까part1','고양이가 물어요! 이럴때 해결방법은?PART1','고양이가 물어요 왜 무는걸까part1.jpg','<iframe width="560" height="315" src="https://www.youtube.com/embed/tXGUyNS1Pm8" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','고양이');
+INSERT INTO EDUCATION VALUES('고양이가 물어요 무는 행동 교정 part2','고양이가 물어요! 이럴때 해결방법은?PART2','고양이가 물어요 무는 행동 교정 part2.jpg','<iframe width="560" height="315" src="https://www.youtube.com/embed/_zlSS8OrXaU" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','고양이');
+INSERT INTO EDUCATION VALUES('고양이가 물어요 쓰다듬기 공격성 part3','고양이가 물어요! 이럴때 해결방법은?PART3','고양이가 물어요 쓰다듬기 공격성 part3.jpg','<iframe width="560" height="315" src="https://www.youtube.com/embed/R66L1Tsxwn8" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','고양이');
+INSERT INTO EDUCATION VALUES('고양이가 물어요 놀이 공격성part4','고양이가 물어요! 이럴때 해결방법은?PART4','고양이가 물어요 놀이 공격성part4.jpg','<iframe width="560" height="315" src="https://www.youtube.com/embed/dU5yDLq9FT0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','고양이');
+INSERT INTO EDUCATION VALUES('고양이가 받는스트레스?','까탈스러운 고양이도 스트레스를 많이 받는다는데 이유가 무엇일까?','고양이가 받는스트레스.jpg','<iframe width="560" height="315" src="https://www.youtube.com/embed/zNS58aUtRRI" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','고양이');
+INSERT INTO EDUCATION VALUES('고양이가 아플 때 보이는 행동!','우리 고양이도 아플때가 있어요 하지만 아무렇지 않은 척! 어떻게 알아보아야 할까요?','고양이가 아플 때 보이는 행동.jpg','<iframe width="560" height="315" src="https://www.youtube.com/embed/d62uZHVToRU" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','고양이');
+INSERT INTO EDUCATION VALUES('고양이와 놀아주는법!','고양이도 가끔은 놀고싶다고 하는데?','고양이와 놀아주는법.jpg','<iframe width="560" height="315" src="https://www.youtube.com/embed/IHPGfc3TG54" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','고양이');
+INSERT INTO EDUCATION VALUES('고양이의 놀라운 운동신경!!','세상에 이런일이!! 우리고양이의 운동신경!','고양이의 놀라운 운동신경.jpg','<iframe width="560" height="315" src="https://www.youtube.com/embed/VCTp_ZqYNhk" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','고양이');
+INSERT INTO EDUCATION VALUES('고양이의 스트레스 해소를 위해 주인이 해야할 일!','고양이도 스트레스를 받는답니다! 이럴때 주인이 해주어야 할 일은?','고양이의 스트레스 해소를 위해 주인이 해야할 일.jpg','<iframe width="560" height="315" src="https://www.youtube.com/embed/EwWwUWiMWf4" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','고양이');
+INSERT INTO EDUCATION VALUES('더 이상 해줄 게 없다면..','반려동물에게 더이상 해줄 수 있는 것이 없다면 ㅠ.ㅠ','더 이상 해줄 게 없다면.jpg','<iframe width="560" height="315" src="https://www.youtube.com/embed/6NAknvX1EIU" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','강아지, 고양이');
+INSERT INTO EDUCATION VALUES('반려동물에게 독이 되는 음식!','우리 반려동물이 먹으면 안된다는 음식이 있다던데 무엇일까요?','반려동물에게 독이 되는 음식.jpg','<iframe width="560" height="315" src="https://www.youtube.com/embed/evn8HkgMYPM" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','강아지, 고양이');
+INSERT INTO EDUCATION VALUES('사람들이 잘 모르는 고양이 상식','사람들이 잘 모르고 지나치는 고양이의 상식!','사람들이 잘 모르는 고양이 상식.jpg','<iframe width="560" height="315" src="https://www.youtube.com/embed/cwojOFg75Do" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','고양이');
+INSERT INTO EDUCATION VALUES('슬개골 탈구 무조건 수술해야 한다?','강아지가 자주 걸리는 슬개골 탈구! 어떻게 치료해야할까?','슬개골 탈구 무조건 수술해야 한다.jpg','<iframe width="560" height="315" src="https://www.youtube.com/embed/YTRJ5LyYK78" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','강아지');
+INSERT INTO EDUCATION VALUES('우리 강아지 분리불안 혹시 내 탓?!','우리 강아지의 분리불안은 내 탓 일까?','우리 강아지 분리불안 혹시 내 탓.jpg','<iframe width="560" height="315" src="https://www.youtube.com/embed/ZGZNTTtX5aQ" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','강아지');
+INSERT INTO EDUCATION VALUES('이렇게 하면 고양이 목욕 끝!','이렇게만 하자 깔끔한 고양이 목욕!','이렇게 하면 고양이 목욕 끝.jpg','<iframe width="560" height="315" src="https://www.youtube.com/embed/-aMVkD9Fwdc" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','고양이');
+INSERT INTO EDUCATION VALUES('집사라면 알아야 할 고양이의 질병 시그널!','집사라면 알아야 할 필수 고양이의 질병 시그널!','집사라면 알아야 할 고양이의 질병 시그널.jpg','<iframe width="560" height="315" src="https://www.youtube.com/embed/RiVjg5I6fRQ" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','고양이');
+INSERT INTO EDUCATION VALUES('집사백과사전 고양이 교육하기 기본예절 part1','고양이를 교육하여 예절바른 고양이를 기릅시다!PART1','집사백과사전 고양이 교육하기 기본예절 part1.jpg','<iframe width="560" height="315" src="https://www.youtube.com/embed/y5kd7-59wco" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','고양이');
+INSERT INTO EDUCATION VALUES('집사백과사전 고양이 교육하기 기본 예절part 2','고양이를 교육하여 예절바른 고양이를 기릅시다!PART2','집사백과사전 고양이 교육하기 기본예절 part2.jpg','<iframe width="560" height="315" src="https://www.youtube.com/embed/ifC_qo-dLfM" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>','0','0',EDU_SEQ.NEXTVAL,'교육','고양이');
+
+
+-- 교육 좋아요 테이블
+CREATE TABLE EDUCATION_LIKE(
+    LIKEEDUNUM NUMBER,
+    LIKEUSERID NVARCHAR2(15),
+
+    CONSTRAINT EEN_EUI_PK PRIMARY KEY(LIKEEDUNUM, LIKEUSERID),
+    CONSTRAINT EL_EN_FK FOREIGN KEY (LIKEEDUNUM) REFERENCES EDUCATION(EDUNUM) ON DELETE CASCADE,
+    CONSTRAINT EL_UI_FK FOREIGN KEY (LIKEUSERID) REFERENCES MEMBERS(USERID) ON DELETE CASCADE
+);
+
+
+
+
+
+
+-- 교육 댓글 정보 테이블
+CREATE TABLE EDUCATION_COMMENT(
+    COMMENTEDUNUM NUMBER,
+    COMMENTNUM NUMBER PRIMARY KEY,
+    COMMENTUSERID NVARCHAR2(15),
+    COMMENTLIKE NUMBER DEFAULT 0,
+    COMMENTDATE DATE NOT NULL,
+    COMMENTCONTENTS NVARCHAR2(500),
+
+    CONSTRAINT EC_EN_FK FOREIGN KEY (COMMENTEDUNUM) REFERENCES EDUCATION(EDUNUM) ON DELETE CASCADE,
+    CONSTRAINT EC_UI_FK FOREIGN KEY (COMMENTUSERID) REFERENCES MEMBERS(USERID) ON DELETE CASCADE
+);
+--교육 댓글 시퀀스
+CREATE SEQUENCE EDUCATION_COMMENT_SEQ INCREMENT BY 1 START WITH 1 ;
+--교육 정보
+INSERT INTO EDUCATION_COMMENT VALUES(1,EDUCATION_COMMENT_SEQ.nextVal,'admin',0,SYSDATE,'이벤트정보입니다.');
+
+
+
+
+-- 교육 댓글 좋아요 테이블
+CREATE TABLE EDUCATION_COMMENT_LIKE(
+    LIKECOMMENTEDUNUM NUMBER,
+    LIKECOMMENTNUM NUMBER,
+    LIKEUSERID NVARCHAR2(15),
+
+    CONSTRAINT LEN_LCN_LUI_PK PRIMARY KEY(LIKECOMMENTEDUNUM, LIKECOMMENTNUM, LIKEUSERID),
+    CONSTRAINT ECL_CN_FK FOREIGN KEY (LIKECOMMENTEDUNUM) REFERENCES EDUCATION(EDUNUM) ON DELETE CASCADE,
+    CONSTRAINT ECL_UI_FK FOREIGN KEY (LIKEUSERID) REFERENCES MEMBERS(USERID) ON DELETE CASCADE
+);
+
+
+
+
+
+--/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+-- 이벤트 정보 테이블
+CREATE TABLE EVENT(
+    EVENTNUM NUMBER PRIMARY KEY,
+    EVENTTITLEIMAGE NVARCHAR2(100) NOT NULL,
+    EVENTIMAGE NVARCHAR2(100),
+    EVENTHIT NUMBER DEFAULT 0,
+    EVENTDATE DATE NOT NULL,
+    EVENTCONTENTS NVARCHAR2(1000),
+    EVENTCOUPONCODE NVARCHAR2(12),
+    KIND NVARCHAR2(3)
+);
+--이벤트 시퀀스
+CREATE SEQUENCE EVENT_SEQ INCREMENT BY 1 START WITH 1 ;
+--이벤트 정보
+INSERT INTO EVENT VALUES(EVENT_SEQ.nextVal, '11월 11일 빼빼로데이.png', '11월 11일 빼빼로 데이 상세내용.png', 0, SYSDATE, '', '', '이벤트');
+INSERT INTO EVENT VALUES(EVENT_SEQ.nextVal, '개편한 호텔.png', '개편한 호텔 상세내용.png', 0, SYSDATE, '', '', '이벤트');
+INSERT INTO EVENT VALUES(EVENT_SEQ.nextVal, '구매는 타이밍.png', '구매는 타이밍 상세내용.png', 0, SYSDATE, '', '', '이벤트');
+INSERT INTO EVENT VALUES(EVENT_SEQ.nextVal, '내 자식 자랑(강아지).png', '내 자식 자랑(강아지) 상세내용.png', 0, SYSDATE, '', '', '이벤트');
+INSERT INTO EVENT VALUES(EVENT_SEQ.nextVal, '댕댕이 인기간식 총집합.png', '댕댕이 인기간식 총집합 상세내용.png', 0, SYSDATE, '', '', '이벤트');
+INSERT INTO EVENT VALUES(EVENT_SEQ.nextVal, '레어펫 동물병원.png', '레어펫 동물병원 상세내용.png', 0, SYSDATE, '', '', '이벤트');
+INSERT INTO EVENT VALUES(EVENT_SEQ.nextVal, '레어펫 동화세상 상세내용.png', '레어펫 동화세상 썸네일 버전1.png', 0, SYSDATE, '', '', '이벤트');
+INSERT INTO EVENT VALUES(EVENT_SEQ.nextVal, '레어펫 반려견 미용 반값 할인.png', '레어펫 반려견 미용 반값 할인 상세내용.png', 0, SYSDATE, '', '', '이벤트');
+INSERT INTO EVENT VALUES(EVENT_SEQ.nextVal, '레어펫 생일 이벤트.png', '레어펫 생일 이벤트 상세내용.png', 0, SYSDATE, '', '', '이벤트');
+INSERT INTO EVENT VALUES(EVENT_SEQ.nextVal, '레어펫 이벤트 초성퀴즈1.png', '레어펫 이벤트 초성퀴즈1 - 상세내용.png', 0, SYSDATE, '', '', '이벤트');
+INSERT INTO EVENT VALUES(EVENT_SEQ.nextVal, '레어펫페어 이벤트.png', '레어펫페어 이벤트 상세내용.png', 0, SYSDATE, '', '', '이벤트');
+INSERT INTO EVENT VALUES(EVENT_SEQ.nextVal, '레어펫 한글날 이벤트.png', '레어펫 한글날 이벤트 상세내용.png', 0, SYSDATE, '', '', '이벤트');
+INSERT INTO EVENT VALUES(EVENT_SEQ.nextVal, '신제품 체험단 모집.png', '신제품 체험 모집 상세내용.png', 0, SYSDATE, '', '', '이벤트');
+INSERT INTO EVENT VALUES(EVENT_SEQ.nextVal, '싹쓰리 이벤트.png', '싹쓰리 이벤트 상세내용.png', 0, SYSDATE, '', '', '이벤트');
+INSERT INTO EVENT VALUES(EVENT_SEQ.nextVal, '여러분의 주인님을 자랑 해주세요.png', '여러분의 주인님을 자랑 해주세요 상세내용.png', 0, SYSDATE, '', '', '이벤트');
+
+
+
+
+-- 이벤트 댓글 정보 테이블
+CREATE TABLE EVENT_COMMENT(
+    COMMENTEVENTNUM NUMBER,
+    COMMENTNUM NUMBER PRIMARY KEY,
+    COMMENTCONTENTS NVARCHAR2(500) NOT NULL,
+    COMMENTUSERID NVARCHAR2(15),
+    COMMENTIMAGE NVARCHAR2(100),
+    COMMENTLIKE NUMBER DEFAULT 0,
+    COMMENTDATE DATE NOT NULL,
+
+    CONSTRAINT EVC_EN_FK FOREIGN KEY (COMMENTEVENTNUM) REFERENCES EVENT(EVENTNUM) ON DELETE CASCADE,
+    CONSTRAINT EVC_UI_FK FOREIGN KEY (COMMENTUSERID) REFERENCES MEMBERS(USERID) ON DELETE CASCADE
+);
+--이벤트 댓글 시퀀스
+CREATE SEQUENCE EVENT_COMMENT_SEQ INCREMENT BY 1 START WITH 1 ;
+INSERT INTO EVENT_COMMENT VALUES(1, EVENT_COMMENT_SEQ.NEXTVAL, '우왕 댓글 달 수 이ㅏㅆ따','admin', '', 0, SYSDATE);
+
+
+-- 이벤트 댓글 좋아요 테이블
+CREATE TABLE EVENT_COMMENT_LIKE(
+    LIKECOMMENTEVENTNUM NUMBER,
+    LIKECOMMENTNUM NUMBER,
+    LIKEUSERID NVARCHAR2(15),
+
+    CONSTRAINT EVLEN_EVLCN_EVLUI_PK PRIMARY KEY(LIKECOMMENTEVENTNUM, LIKECOMMENTNUM, LIKEUSERID),
+    CONSTRAINT EVCL_EN_FK FOREIGN KEY (LIKECOMMENTEVENTNUM) REFERENCES EVENT(EVENTNUM) ON DELETE CASCADE,
+    CONSTRAINT EVCL_CN_FK FOREIGN KEY (LIKECOMMENTNUM) REFERENCES EVENT_COMMENT(COMMENTNUM) ON DELETE CASCADE,
+    CONSTRAINT EVCL_UI_FK FOREIGN KEY (LIKEUSERID) REFERENCES MEMBERS(USERID) ON DELETE CASCADE
+);
+
+
+
+
+--/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+-- 리뷰 정보 테이블
+CREATE TABLE REVIEW(
+    REVIEWNUM NUMBER PRIMARY KEY,
+    REVIEWCONTENTS NVARCHAR2(1000) NOT NULL,
+    REVIEWIMAGE NVARCHAR2(100),
+    REVIEWRATING NVARCHAR2(10) NOT NULL,
+    REVIEWDATE DATE NOT NULL,
+    REVIEWBLIND NVARCHAR2(5),
+    REVIEWLIKE NUMBER NOT NULL,
+    REVIEWTITLE NVARCHAR2(55) NOT NULL,
+    REVIEWKIND NVARCHAR2(2) NOT NULL,
+    REVIEWUSERID NVARCHAR2(15),
+
+    CONSTRAINT RV_UI_FK FOREIGN KEY (REVIEWUSERID) REFERENCES MEMBERS(USERID) ON DELETE CASCADE
+);
+
+-- 리뷰 시퀀스
+CREATE SEQUENCE REVIEW_SEQ INCREMENT BY 1 START WITH 1 ;
+INSERT INTO REVIEW VALUES(REVIEW_SEQ.NEXTVAL, '리뷰 용용 admin 남깁니다', '201019_143017ㅡavatar1.jpg', '5', SYSDATE, '', 0, '(리뷰)용품검색', '용품', 'a');
+-- 리뷰 뷰
+CREATE VIEW HOTEL_REVIEW AS SELECT B.*, ROW_NUMBER() OVER(ORDER BY REVIEWDATE DESC) AS RN FROM REVIEW B WHERE REVIEWKIND='호텔';
+CREATE VIEW BEAUTY_REVIEW AS SELECT B.*, ROW_NUMBER() OVER(ORDER BY REVIEWDATE DESC) AS RN FROM REVIEW B WHERE REVIEWKIND='미용';
+CREATE VIEW MEDICAL_REVIEW AS SELECT B.*, ROW_NUMBER() OVER(ORDER BY REVIEWDATE DESC) AS RN FROM REVIEW B WHERE REVIEWKIND='병원';
+CREATE VIEW GOODS_REVIEW AS SELECT B.*, ROW_NUMBER() OVER(ORDER BY REVIEWDATE DESC) AS RN FROM REVIEW B WHERE REVIEWKIND='용품';
+
+
+
+
+
+-- 리뷰 좋아요 테이블
+CREATE TABLE REVIEW_LIKE(
+    LIKEREVIEWNUM NUMBER,
+    LIKEUSERID NVARCHAR2(15),
+
+    CONSTRAINT LRN_LUI_PK PRIMARY KEY (LIKEREVIEWNUM, LIKEUSERID),
+    CONSTRAINT RL_RN_FK FOREIGN KEY (LIKEREVIEWNUM) REFERENCES REVIEW(REVIEWNUM) ON DELETE CASCADE,
+    CONSTRAINT RL_UI_FK FOREIGN KEY (LIKEUSERID) REFERENCES MEMBERS(USERID) ON DELETE CASCADE
+);
+
+
+
+-- 리뷰 신고
+CREATE TABLE REVIEW_REPORT(
+    REPORTREVIEWNUM NUMBER,
+    REPORTUSERID NVARCHAR2(15),
+    REPORTKIND NVARCHAR2(1000),
+
+    CONSTRAINT RRN_RUI_PK PRIMARY KEY (REPORTREVIEWNUM, REPORTUSERID),
+    CONSTRAINT RR_RN_FK FOREIGN KEY (REPORTREVIEWNUM) REFERENCES REVIEW(REVIEWNUM) ON DELETE CASCADE,
+    CONSTRAINT RR_UI_FK FOREIGN KEY (REPORTUSERID) REFERENCES MEMBERS(USERID) ON DELETE CASCADE
+);
+-- 리뷰 신고 뷰
+CREATE VIEW REPORT_LIST AS SELECT B.*, ROW_NUMBER() OVER(ORDER BY REPORTREVIEWNUM) AS RN FROM REVIEW_REPORT B;
+
+select*from medical_reservation;
+COMMIT;
